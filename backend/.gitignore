@@ -1,0 +1,44 @@
+# Dependencias y artefactos de instalación
+# Ignora la carpeta de módulos de Node
+/node_modules
+# Ignora el archivo de lock de npm/yarn si por alguna razón aparecen
+package-lock.json
+yarn.lock
+
+# Directorios y caché específicos de pnpm
+/.pnpm-store
+/pnpm-debug.log*
+/node_modules/.cache
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Archivos de Build y Temporales
+/dist
+/build
+/tmp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos de Cobertura de Tests
+/coverage
+/.nyc_output
+/test-results
+/junit.xml
+
+# IDEs y Editores
+# VSCode
+.vscode/
+# JetBrains / WebStorm / Idea
+.idea/
+
+# Nodemon
+nodemon.log
+
+# Tipos de Archivos Temporales de OS
+.DS_Store
+Thumbs.db

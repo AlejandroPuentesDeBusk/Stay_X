@@ -72,6 +72,7 @@ export const assertDbConnection = async () => {
 // Generar modelos en la BD según env DB_SYNC (off|alter|force)
 // --- arriba del archivo (después de imports) ---
 let modelsLoaded = false; // evita doble autoload
+let syncExecuted = false; // <-- AÑADIR NUEVO FLAG
 
 async function initModelAutoload() {
   if (modelsLoaded) return;           // <-- guard
@@ -88,22 +89,22 @@ async function initModelAutoload() {
 
 /** Ejecuta sequelize.sync según DB_SYNC (off|alter|force) */
 async function maybeSync() {
+  if (syncExecuted) return; // <-- GUARDIA
   const mode = (process.env.DB_SYNC || 'off').toLowerCase();
-  if (mode === 'off') {
-    logger.info('DB sync disabled (DB_SYNC=off)');
-    return;
-  }
+
+  // ... (código existente)
+
   if (mode === 'force') {
     await sequelize.sync({ force: true });
     logger.warn('sequelize.sync({ force: true }) executed (destructive)');
-    return;
-  }
-  if (mode === 'alter') {
+  } else if (mode === 'alter') { // Usar 'else if' aquí
     await sequelize.sync({ alter: true });
     logger.info('sequelize.sync({ alter: true }) executed');
-    return;
+  } else {
+    logger.warn({ mode }, 'Unknown DB_SYNC mode; skipping sync');
+    return; // Retornar si no se ejecuta sync
   }
-  logger.warn({ mode }, 'Unknown DB_SYNC mode; skipping sync');
+  syncExecuted = true; // <-- MARCA COMO EJECUTADO
 }
 
 
@@ -116,5 +117,8 @@ if (process.env.DB_AUTOLOAD_MODELS !== 'false') {
 // Export auxiliar para otros sitios que quieran asegurar carga explícita
 export const ensureModelsLoaded = async () => {
   await initModelAutoload();
-  await maybeSync();
+  // Solo sincroniza si el TLA (Top-Level Await) aún no lo hizo
+  if (!syncExecuted) { 
+    await maybeSync();
+  }
 };

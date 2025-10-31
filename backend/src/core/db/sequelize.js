@@ -5,7 +5,7 @@ import { AppError, ERR } from '../errors.js';
 import { env } from '../../config/env.js';
 import logger from '../logger.js';
 import { autoloadModels } from './autoloadModels.js';
-import { getModels } from './registry.js';
+import { getModels, clearModels } from './registry.js';
 
 // Configurar Sequelize
 export const sequelize = new Sequelize(env.DATABASE_URL, {
@@ -71,17 +71,18 @@ export const assertDbConnection = async () => {
 
 // Generar modelos en la BD según env DB_SYNC (off|alter|force)
 // --- arriba del archivo (después de imports) ---
-let modelsLoaded = false; // evita doble autoload
+
 let syncExecuted = false; // <-- AÑADIR NUEVO FLAG
 
 async function initModelAutoload() {
-  if (modelsLoaded) return;           // <-- guard
+      // <-- guard
+  clearModels();
   try {
     await autoloadModels(sequelize);
     const models = getModels();
     const modelNames = Object.keys(models);
     logger.info({ count: modelNames.length, modelNames }, 'Models registered');
-    modelsLoaded = true;              // <-- set guard
+              // <-- set guard
   } catch (error) {
     logger.error({ error: error.message }, 'Model autoload initialization failed');
   }

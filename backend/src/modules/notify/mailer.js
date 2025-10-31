@@ -9,16 +9,23 @@ let transport = null;
 async function buildTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NODE_ENV } = env;
 
-  if (SMTP_HOST && SMTP_USER && SMTP_PASS && NODE_ENV !== 'development') {
+  // --- INICIO DE LA MODIFICACIÓN ---
+  // 1. Revisa si hay credenciales SMTP REALES.
+  //    (Eliminamos 'NODE_ENV !== "development"' para que SIEMPRE las use si existen)
+  if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+    logger.info('[MAIL] Usando configuración SMTP real.'); // <-- Log para confirmar
     return nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT || 587),
-      secure: Number(SMTP_PORT || 587) === 465, // True para 465, False para otros puertos (ej. 587)
+      secure: Number(SMTP_PORT || 587) === 465,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
     });
   }
+  // --- FIN DE LA MODIFICACIÓN ---
 
-  // ETHEREAL fallback para desarrollo si no se configura SMTP real
+
+  // 2. Si no hay SMTP real Y estamos en desarrollo, usa Ethereal
+  //    (Este bloque es el que estaba antes)
   if (NODE_ENV === 'development') {
     try {
       const account = await nodemailer.createTestAccount();
@@ -31,6 +38,7 @@ async function buildTransport() {
     }
   }
 
+  // 3. Fallback final: La consola
   logger.warn('[MAIL] No hay configuración SMTP. Usando fallback a la consola.');
   return {
     async sendMail(opts) {

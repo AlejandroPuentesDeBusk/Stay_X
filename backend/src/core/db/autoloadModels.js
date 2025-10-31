@@ -30,7 +30,15 @@ export async function autoloadModels(sequelize) {
       try {
         const absolutePath = resolve(modelPath);
         const fileUrl = pathToFileURL(absolutePath);
-        const mod = await import(fileUrl.href);
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Forzamos a Node.js a releer el archivo en desarrollo
+        // "Bust the cache"
+        let importPath = fileUrl.href;
+        if (process.env.NODE_ENV === 'development') {
+          importPath = `${fileUrl.href}?v=${Date.now()}`;
+        }
+        const mod = await import(importPath);
+        // --- FIN DE LA CORRECCIÓN ---
 
         if (typeof mod.defineModel !== 'function') {
           logger.warn({ modelPath }, 'Module model missing defineModel(sequelize, DataTypes)');

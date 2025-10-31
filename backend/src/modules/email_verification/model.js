@@ -1,6 +1,6 @@
 // backend/src/modules/email-verifications/model.js
 import { DataTypes, UUIDV4 } from 'sequelize';
-import { env } from '../../config/env.js';
+
 
 export const MODEL_NAME = 'email_verifications';
 
@@ -21,10 +21,18 @@ export function defineModel(sequelize) {
       unique: true,
     },
     // Expiración: El token solo es válido por una hora
+// --- INICIO DE LA MODIFICACIÓN ---
     expires_at: {
       type: DataTypes.DATE,
       allowNull: false,
+      // Usamos una función en defaultValue para calcular la expiración
+      defaultValue: () => {
+        const expiresAt = new Date();
+        expiresAt.setSeconds(expiresAt.getSeconds() + EXPIRATION_TIME);
+        return expiresAt;
+      }
     },
+    // --- FIN DE LA MODIFICACIÓN ---
     // Para saber si el token ya se usó
     used_at: {
       type: DataTypes.DATE,
@@ -34,7 +42,8 @@ export function defineModel(sequelize) {
     tableName: MODEL_NAME,
     underscored: true,
     timestamps: true,
-    paranoid: false, // No necesitamos borrado lógico aquí
+    paranoid: false, 
+
   });
 
   // Relación: Un token de verificación pertenece a un único usuario
@@ -44,15 +53,8 @@ export function defineModel(sequelize) {
       onDelete: 'CASCADE',
     });
   };
-
-  /**
-   * Hook para establecer la expiración al crear el token
-   */
-  EmailVerification.beforeCreate((token, options) => {
-    const expiresAt = new Date();
-    expiresAt.setSeconds(expiresAt.getSeconds() + EXPIRATION_TIME);
-    token.expires_at = expiresAt;
-  });
+  
+  // ELIMINA cualquier código que llame a EmailVerification.beforeCreate() aquí.
 
   return EmailVerification;
 }

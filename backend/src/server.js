@@ -5,6 +5,7 @@ import { createApp } from './app.js';
 import logger from './core/logger.js';
 import { ensureModelsLoaded } from './core/db/sequelize.js';
 import { initializeRoutes } from './router/index.js'; // ⬅️ 1. IMPORTA LA FUNCIÓN
+import { initializeSocket } from './core/socket.js'; // 1. Importar el inicializador
 import 'express-async-errors';
 
 // SE MUEVE LA CREACIÓN DE APP DENTRO DE LA FUNCIÓN ASÍNCRONA

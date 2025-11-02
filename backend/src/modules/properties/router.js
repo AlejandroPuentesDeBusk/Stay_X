@@ -26,18 +26,6 @@ router.get('/',
 );
 
 /**
- * GET /properties/:id (Detalle de propiedad)
- * Muestra una propiedad. Oculta 'draft' si no es el dueño.
- */
-router.get('/:id',
-  authOptional, // authOptional pasa el req.ctx si existe
-  controllers.getProperty
-);
-
-
-// --- Rutas Privadas (Requieren Autenticación) ---
-
-/**
  * GET /properties/my-properties
  * Endpoint especial para que un arrendador vea SUS propiedades (incluyendo drafts).
  * Debe ir ANTES de /:id para que 'my-properties' no sea tratado como un ID.
@@ -48,6 +36,18 @@ router.get('/my-properties',
   validate(validators.QueryMyPropertiesSchema, 'query'),
   controllers.listMyProperties
 );
+
+/**
+ * GET /properties/:id (Detalle de propiedad)
+ * Muestra una propiedad. Oculta 'draft' si no es el dueño.
+ */
+router.get('/:id',
+  authOptional, // authOptional pasa el req.ctx si existe
+  controllers.getProperty
+);
+
+
+// --- Rutas Privadas (Requieren Autenticación) ---
 
 /**
  * POST /properties
@@ -78,6 +78,35 @@ router.delete('/:id',
   requireAuth, // Debe estar logueado
   controllers.deleteProperty // El servicio verifica permisos y estado
 );
+
+// --- INICIO DE LA MODIFICACIÓN (Rutas de Vínculo) ---
+
+/** POST /properties/:id/amenities */
+router.post('/:id/amenities',
+  requireAuth,
+  validate(validators.LinkAmenitySchema),
+  controllers.addAmenity // El servicio verifica propiedad
+);
+
+/** DELETE /properties/:id/amenities/:amenity_id */
+router.delete('/:id/amenities/:amenity_id',
+  requireAuth,
+  controllers.removeAmenity // El servicio verifica propiedad
+);
+
+/** POST /properties/:id/rules */
+router.post('/:id/rules',
+  requireAuth,
+  validate(validators.LinkRuleSchema),
+  controllers.addRule // El servicio verifica propiedad
+);
+
+/** DELETE /properties/:id/rules/:rule_id */
+router.delete('/:id/rules/:rule_id',
+  requireAuth,
+  controllers.removeRule // El servicio verifica propiedad
+);
+// --- FIN DE LA MODIFICACIÓN ---
 
 
 export default router;

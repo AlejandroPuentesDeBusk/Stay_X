@@ -62,3 +62,17 @@ export const QueryMyPropertiesSchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   status: PropertyStatus.optional(), // Permite al dueño filtrar por status
 });
+
+// --- INICIO DE LA MODIFICACIÓN (Validadores de Vínculo) ---
+
+/** POST /properties/:id/amenities */
+export const LinkAmenitySchema = z.object({
+  amenity_id: z.string().uuid('El ID de la amenidad debe ser un UUID válido'),
+});
+
+/** POST /properties/:id/rules */
+export const LinkRuleSchema = z.object({
+  rule_id: z.string().uuid('El ID de la regla debe ser un UUID válido'),
+});
+
+// --- FIN DE LA MODIFICACIÓN ---

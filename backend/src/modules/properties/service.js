@@ -6,6 +6,10 @@ import { ROLES } from '../../core/constants.js';
 
 const Properties = getModel('properties');
 const Users = getModel('users');
+// --- INICIO DE LA MODIFICACIÓN (Importar Catálogos) ---
+const Amenities = getModel('amenities');
+const Rules = getModel('rules');
+// --- FIN DE LA MODIFICACIÓN ---
 
 // --- Helpers de Autorización ---
 
@@ -36,11 +40,27 @@ function authorizeOwnerOrAdmin(property, context) {
  */
 export async function getPropertyById(id, context = {}) {
   const property = await Properties.findByPk(id, {
-    include: [{
-      model: Users,
-      as: 'owner',
-      attributes: ['id', 'name', 'is_identity_verified'], // Solo exponer datos públicos del dueño
-    }]
+    include: [
+      {
+        model: Users,
+        as: 'owner',
+        attributes: ['id', 'name', 'is_identity_verified'], // Solo exponer datos públicos del dueño
+      },
+      // --- INICIO DE LA MODIFICACIÓN (Incluir catálogos) ---
+      {
+        model: Amenities,
+        as: 'amenities',
+        attributes: ['id', 'name', 'icon_key'],
+        through: { attributes: [] } // No incluir la tabla intermedia
+      },
+      {
+        model: Rules,
+        as: 'rules',
+        attributes: ['id', 'name', 'icon_key'],
+        through: { attributes: [] }
+      }
+      // --- FIN DE LA MODIFICACIÓN ---
+    ]
   });
 
   if (!property) {
@@ -188,3 +208,72 @@ export async function deleteProperty(id, context) {
   // Borrado lógico (paranoid: true)
   await property.destroy();
 }
+
+
+// --- INICIO DE LA MODIFICACIÓN (Servicios de Vínculo) ---
+
+/**
+ * Vincula una Amenidad a una Propiedad. (Dueño o Admin)
+ */
+export async function addAmenityToProperty(propertyId, amenityId, context) {
+  const property = await Properties.findByPk(propertyId);
+  if (!property) {
+    throw new AppError('Propiedad no encontrada.', 404, ERR.NOT_FOUND);
+  }
+  authorizeOwnerOrAdmin(property, context);
+
+  const amenity = await Amenities.findByPk(amenityId);
+  if (!amenity) {
+    throw new AppError('Amenidad no encontrada.', 404, ERR.NOT_FOUND);
+  }
+
+  // Usamos el "magic method" de Sequelize
+  await property.addAmenity(amenity);
+}
+
+/**
+ * Desvincula una Amenidad de una Propiedad. (Dueño o Admin)
+ */
+export async function removeAmenityFromProperty(propertyId, amenityId, context) {
+  const property = await Properties.findByPk(propertyId);
+  if (!property) {
+    throw new AppError('Propiedad no encontrada.', 404, ERR.NOT_FOUND);
+  }
+  authorizeOwnerOrAdmin(property, context);
+
+  // Usamos el "magic method" de Sequelize
+  await property.removeAmenity(amenityId);
+}
+
+/**
+ * Vincula una Regla a una Propiedad. (Dueño o Admin)
+ */
+export async function addRuleToProperty(propertyId, ruleId, context) {
+  const property = await Properties.findByPk(propertyId);
+  if (!property) {
+    throw new AppError('Propiedad no encontrada.', 404, ERR.NOT_FOUND);
+  }
+  authorizeOwnerOrAdmin(property, context);
+
+  const rule = await Rules.findByPk(ruleId);
+  if (!rule) {
+    throw new AppError('Regla no encontrada.', 404, ERR.NOT_FOUND);
+  }
+
+  await property.addRule(rule);
+}
+
+/**
+ * Desvincula una Regla de una Propiedad. (Dueño o Admin)
+ */
+export async function removeRuleFromProperty(propertyId, ruleId, context) {
+  const property = await Properties.findByPk(propertyId);
+  if (!property) {
+    throw new AppError('Propiedad no encontrada.', 404, ERR.NOT_FOUND);
+  }
+  authorizeOwnerOrAdmin(property, context);
+
+  await property.removeRule(ruleId);
+}
+// --- FIN DE LA MODIFICACIÓN ---
+

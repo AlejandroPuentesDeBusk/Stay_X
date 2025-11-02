@@ -77,7 +77,7 @@ export function defineModel(sequelize) {
     status: {
       type: DataTypes.ENUM('draft', 'published', 'rented'),
       allowNull: false,
-      defaultValue: 'draft',
+      defaultValue: 'draft'
     },
     is_property_verified: {
       type: DataTypes.BOOLEAN,
@@ -111,8 +111,27 @@ export function defineModel(sequelize) {
       onDelete: 'CASCADE',
     });
 
-    // Las relaciones M2M (amenities, rules) se definirán
-    // en los modelos 'amenities' y 'rules' cuando se creen.
+    // --- INICIO DE LA MODIFICACIÓN (Añadir M2M) ---
+
+    // Una propiedad puede tener muchas amenidades
+    Properties.belongsToMany(models.amenities, {
+      through: 'property_amenities', // La misma tabla intermedia
+      foreignKey: 'property_id',
+      otherKey: 'amenity_id',
+      as: 'amenities', // <-- Añadir alias
+      timestamps: false,
+    });
+
+    // Una propiedad puede tener muchas reglas
+    Properties.belongsToMany(models.rules, {
+      through: 'property_rules', // La misma tabla intermedia
+      foreignKey: 'property_id',
+      otherKey: 'rule_id',
+      as: 'rules', // <-- Añadir alias
+      timestamps: false,
+    });
+
+    // --- FIN DE LA MODIFICACIÓN ---
   };
 
   return Properties;

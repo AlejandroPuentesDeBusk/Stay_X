@@ -75,3 +75,37 @@ export const deleteProperty = async (req, res) => {
   await propertyService.deleteProperty(id, req.ctx);
   return noContent(res);
 };
+
+// --- INICIO DE LA MODIFICACIÓN (Controladores de Vínculo) ---
+
+/** POST /properties/:id/amenities */
+export const addAmenity = async (req, res) => {
+  const { id } = req.params;
+  const { amenity_id } = req.body;
+  await propertyService.addAmenityToProperty(id, amenity_id, req.ctx);
+  return noContent(res);
+};
+
+/** DELETE /properties/:id/amenities/:amenity_id */
+export const removeAmenity = async (req, res) => {
+  const { id, amenity_id } = req.params;
+  await propertyService.removeAmenityFromProperty(id, amenity_id, req.ctx);
+  return noContent(res);
+};
+
+/** POST /properties/:id/rules */
+export const addRule = async (req, res) => {
+  const { id } = req.params;
+  const { rule_id } = req.body;
+  await propertyService.addRuleToProperty(id, rule_id, req.ctx);
+  return noContent(res);
+};
+
+/** DELETE /properties/:id/rules/:rule_id */
+export const removeRule = async (req, res) => {
+  const { id, rule_id } = req.params;
+  await propertyService.removeRuleFromProperty(id, rule_id, req.ctx);
+  return noContent(res);
+};
+// --- FIN DE LA MODIFICACIÓN ---
+
